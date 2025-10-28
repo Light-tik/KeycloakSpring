@@ -1,5 +1,6 @@
 package com.example.keycloakdemo.keycloak;
 
+import com.example.keycloakdemo.CustomException;
 import com.example.keycloakdemo.dto.request.UserRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
@@ -41,7 +42,13 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void addRealmRoleToUser(String userName, String roleName) {
         RealmResource realmResource = keycloak.realm(realm);
+        if (realmResource == null) {
+            throw new CustomException("realm resource not found");
+        }
         List<UserRepresentation> users = realmResource.users().search(userName);
+        if (users == null || users.isEmpty()) {
+            throw new CustomException("user not found" + userName);
+        }
         UserResource userResource = realmResource.users().get(users.get(0).getId());
         RoleRepresentation role = realmResource.roles().get(roleName).toRepresentation();
         RoleMappingResource roleMappingResource = userResource.roles();
